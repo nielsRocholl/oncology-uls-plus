@@ -1,0 +1,10 @@
+nnunetv2>=2.4.1
+numpy
+scipy
+SimpleITK
+nibabel
+tqdm
+jsonschema
+pytest
+
+
