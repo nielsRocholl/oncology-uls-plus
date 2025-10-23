@@ -1,10 +1,10 @@
 #!/bin/bash
-#SBATCH --job-name=nnunet_plan
-#SBATCH --qos=high
+#SBATCH --job-name=nnunet_preproc
+#SBATCH --qos=vram
 #SBATCH --ntasks=1
 #SBATCH --gpus-per-task=1
-#SBATCH --cpus-per-task=8
-#SBATCH --mem=70G
+#SBATCH --cpus-per-task=16
+#SBATCH --mem=96G
 #SBATCH --time=7-00:00:00
 #SBATCH --no-container-entrypoint
 #SBATCH --container-mounts=/data/bodyct/experiments/nielsrocholl/:/data/bodyct/experiments/nielsrocholl/
@@ -31,23 +31,20 @@ if ! command -v rclone &> /dev/null; then
 fi
 
 export nnUNet_raw=/data/bodyct/experiments/nielsrocholl/ULS+/nnUNet_raw
-# use node-local path for preprocessed to avoid storage permission issues
+# write preprocessed to node-local to avoid storage permission issues
 export nnUNet_preprocessed=/nnunet_local_${SLURM_JOB_ID}/nnUNet_preprocessed
 export nnUNet_results=/data/bodyct/experiments/nielsrocholl/ULS+/nnUNet_results
 
 # Process combined dataset 100
 DATASET_ID=90
 
-# Ensure local preprocessed root exists
-mkdir -p "${nnUNet_preprocessed}"
+mkdir -p /home/nielsrocholl/projects/git_projects/oncology-uls-plus/nnunet_training/logs
 
-# Extract fingerprints with integrity check and parallelism
-nnUNetv2_extract_fingerprint -d ${DATASET_ID} --verify_dataset_integrity -np $SLURM_CPUS_PER_TASK 2>&1 | tee /home/nielsrocholl/projects/git_projects/oncology-uls-plus/nnunet_training/logs/step1_integrity.log
+ds_padded=$(printf "%03d" ${DATASET_ID})
+echo "Preprocessing Dataset${ds_padded} (3d_fullres_singlepass)"
+nnUNetv2_preprocess -d ${DATASET_ID} -c 3d_fullres_singlepass -p nnUNetResEncUNetLPlans -np $SLURM_CPUS_PER_TASK 2>&1 | tee /home/nielsrocholl/projects/git_projects/oncology-uls-plus/nnunet_training/logs/preprocess_${ds_padded}.log
 
-# Plan experiments
-nnUNetv2_plan_experiment -d ${DATASET_ID} -pl nnUNetPlannerResEncL
-
-echo "Planning complete. Syncing ALL local preprocessed to storage with rclone..."
+echo "Preprocessing complete. Syncing ALL local preprocessed to storage with rclone..."
 rclone copy "${nnUNet_preprocessed}/" \
   "/data/bodyct/experiments/nielsrocholl/ULS+/nnUNet_preprocessed" \
   --progress --multi-thread-streams=32 --transfers=32

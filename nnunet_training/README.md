@@ -20,26 +20,31 @@ SLURM container mount:
 1) Prepare environment (on main node)
 - Ensure datasets 031–050 are present under `nnUNet_raw`.
 - Install local Python deps for helper scripts:
-  - `pip install -r nnunet_training/requirements.txt`
 
-2) Merge datasets (interactive, once)
-- Command:
-  - `python nnunet_training/step0_merge_datasets.py`
+```bash
+pip3 install -r nnunet_training/requirements.txt
+```
+
 - Checks (must pass):
-  - `Dataset100_ULS23_Combined/` created with `imagesTr/`, `labelsTr/`
-  - Filenames prefixed with `D031_..`, `D032_..` etc. (traceable, collision-free)
   - Labels consistent across source datasets (script aborts if not)
   - Report written: `/data/bodyct/experiments/nielsrocholl/ULS+/nnunet_training_logs/step0_report.json`
 
 3) Planning (SLURM job 1)
-- Submit: `sbatch nnunet_training/slurm/01_planning.sbatch`
+- Submit:
+
+```bash
+sbatch nnunet_training/slurm/01_planning.sbatch
+```
 - Checks after completion:
   - `dataset_fingerprint.json` exists in `nnUNet_preprocessed/Dataset100_ULS23_Combined/`
   - `nnUNetResEncUNetLPlans.json` exists in the same folder
 
 4) Analyze and adjust plans (interactive)
 - Command:
-  - `python nnunet_training/step2_analyze_and_adjust.py`
+
+```bash
+python nnunet_training/step2_analyze_and_adjust.py
+```
 - What it does:
   - Reads header shapes/spacings of raw images
   - Uses target spacing from plans to predict resampled sizes
@@ -50,26 +55,64 @@ SLURM container mount:
   - Plans updated with `3d_fullres_singlepass`
 
 5) Preprocessing (SLURM job 2)
-- Submit: `sbatch nnunet_training/slurm/02_preprocessing.sbatch`
+- Submit:
+
+```bash
+sbatch nnunet_training/slurm/02_preprocessing.sbatch
+```
 - Checks after completion:
   - `nnUNet_preprocessed/Dataset100_ULS23_Combined/3d_fullres_singlepass/` exists
 
 6) Create custom split (interactive)
 - Command:
-  - `python nnunet_training/step4_create_splits.py`
+
+```bash
+python nnunet_training/step4_create_splits.py
+```
 - What it does:
   - Generates `splits_final.json` with 98% train / 2% val (stratified by dataset prefix)
 - Checks:
   - `splits_final.json` placed in `nnUNet_preprocessed/Dataset100_ULS23_Combined/`
 
 7) Training (SLURM job 3)
-- Submit: `sbatch nnunet_training/slurm/03_training.sbatch`
+- Submit:
+
+```bash
+sbatch nnunet_training/slurm/03_training.sbatch
+```
 - Behavior:
   - Copies preprocessed data to node-local scratch for speed
   - Trains fold `0` using `3d_fullres_singlepass` with `-p nnUNetResEncUNetLPlans`
-  - Syncs results back to `nnUNet_results` on shared storage
+  - Writes results (checkpoints/weights) directly to `nnUNet_results` (shared)
 - Checks during/after:
   - `progress.png`, `checkpoint_final.pth`, `validation/summary.json` under `nnUNet_results/Dataset100_ULS23_Combined/...`
+
+---
+
+## Maximize GPU utilization (A100)
+
+- Keep single-pass `patch_size` fixed. Increase `batch_size` in a derived config to fill VRAM:
+  - Add in plans under `configurations`:
+    - `"3d_fullres_singlepass_bs4": { "inherits_from": "3d_fullres_singlepass", "batch_size": 4 }`
+  - Train:
+
+```bash
+nnUNetv2_train 100 3d_fullres_singlepass_bs4 0 -p nnUNetResEncUNetLPlans
+```
+  - If OOM, try bs=2, then bs=1.
+- Optional: multi-GPU
+
+```bash
+nnUNetv2_train ... -num_gpus N
+```
+  - Make `batch_size` divisible by N.
+- Optional: planning with higher VRAM target
+ 
+```bash
+nnUNetv2_plan_experiment -d 100 -pl nnUNetPlannerResEncL -gpu_memory_target 40 -overwrite_plans_name nnUNetResEncUNetLPlans_40G
+```
+  - Only useful if you let planner choose `patch_size`. We override it for single-pass.
+- Mixed precision is on by default; preprocessed data already uses node-local scratch.
 
 ---
 

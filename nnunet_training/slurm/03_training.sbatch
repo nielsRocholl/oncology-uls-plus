@@ -4,8 +4,8 @@
 #SBATCH --ntasks=1
 #SBATCH --gpus-per-task=1
 #SBATCH --cpus-per-task=16
-#SBATCH --mem=120G
-#SBATCH --time=5-00:00:00
+#SBATCH --mem=80G
+#SBATCH --time=7-00:00:00
 #SBATCH --no-container-entrypoint
 #SBATCH --container-mounts=/data/bodyct/experiments/nielsrocholl/:/data/bodyct/experiments/nielsrocholl/
 #SBATCH --container-image="dodrio1.umcn.nl#uokbaseimage/diag:latest"
@@ -14,32 +14,33 @@ set -euo pipefail
 
 cd /home/nielsrocholl/projects/git_projects/oncology-uls-plus
 
-python -m pip install -U pip
-python -m pip install -r nnunet_training/requirements.txt
+python3 -m pip install -U pip
+python3 -m pip install -r nnunet_training/requirements.txt
 
-# Shared (source/destination)
-SRC_PP=/data/bodyct/experiments/nielsrocholl/ULS+/nnUNet_preprocessed/Dataset100_ULS23_Combined
-DST_RES=/data/bodyct/experiments/nielsrocholl/ULS+/nnUNet_results
+mkdir -p /nnUNet_local
+mkdir -p /data/bodyct/experiments/nielsrocholl/ULS+/nnUNet_results
 
-# Node-local scratch
-LOCAL_ROOT=/nnunet_local_${SLURM_JOB_ID}
-LOCAL_PP=${LOCAL_ROOT}/nnUNet_preprocessed/Dataset100_ULS23_Combined
+mkdir -p /nnUNet_local/nnUNet_preprocessed
 
-mkdir -p "$LOCAL_PP"
-
-echo "Copying preprocessed data to node-local scratch..."
-rsync -a --delete "$SRC_PP/" "$LOCAL_PP/"
-
-# Point nnUNet to local scratch for speed
+# Set nnU-Net environment paths
 export nnUNet_raw=/data/bodyct/experiments/nielsrocholl/ULS+/nnUNet_raw
-export nnUNet_preprocessed=${LOCAL_ROOT}/nnUNet_preprocessed
-# Write results directly to shared to avoid loss on crash
-mkdir -p ${DST_RES}/Dataset100_ULS23_Combined
-export nnUNet_results=${DST_RES}
+export nnUNet_preprocessed=/nnUNet_local/nnUNet_preprocessed
+export nnUNet_results=/data/bodyct/experiments/nielsrocholl/ULS+/nnUNet_results
 
-echo "Starting training..."
-nnUNetv2_train 100 3d_fullres_singlepass 0 -p nnUNetResEncUNetLPlans --npz
+# Preprocess locally (Dataset 90)
+nnUNetv2_preprocess -d 90 -c 3d_fullres_singlepass -p nnUNetResEncUNetLPlans -np 16
 
-echo "Training complete."
+# Run training (Dataset 90, 3d_fullres_singlepass, fold 0)
+nnUNetv2_train 90 3d_fullres_singlepass 0 -p nnUNetResEncUNetLPlans --npz
+
+# Archive and copy preprocessed to shared as last step, then cleanup
+if command -v pigz >/dev/null 2>&1; then
+    tar -I "pigz -p 16" -cf "/tmp/nnUNet_preprocessed.tar.gz" -C "/nnUNet_local" "nnUNet_preprocessed"
+else
+    tar -czf "/tmp/nnUNet_preprocessed.tar.gz" -C "/nnUNet_local" "nnUNet_preprocessed"
+fi
+cp -f "/tmp/nnUNet_preprocessed.tar.gz" "/data/bodyct/experiments/nielsrocholl/ULS+/nnUNet_preprocessed/"
+rm -f "/tmp/nnUNet_preprocessed.tar.gz" || true
+rm -rf "/nnUNet_local/nnUNet_preprocessed"
 
 

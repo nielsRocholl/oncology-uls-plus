@@ -1,0 +1,149 @@
+{
+  "raw_root": "/data/bodyct/experiments/nielsrocholl/ULS+/nnUNet_raw",
+  "bad_cases": [
+    {
+      "case_id": "WAW_TACE_338_1_scan_lesion0.nii",
+      "images": [],
+      "label": "/data/bodyct/experiments/nielsrocholl/ULS+/nnUNet_raw/Dataset035_WAW_TACE/labelsTr/WAW_TACE_338_1_scan_lesion0.nii.gz",
+      "reasons": [
+        "Spacing mismatch between segmentation and corresponding images."
+      ]
+    },
+    {
+      "case_id": "WAW_TACE_338_1_scan_lesion0_aug1.nii",
+      "images": [],
+      "label": "/data/bodyct/experiments/nielsrocholl/ULS+/nnUNet_raw/Dataset035_WAW_TACE/labelsTr/WAW_TACE_338_1_scan_lesion0_aug1.nii.gz",
+      "reasons": [
+        "Spacing mismatch between segmentation and corresponding images."
+      ]
+    },
+    {
+      "case_id": "WAW_TACE_338_1_scan_lesion0_aug2.nii",
+      "images": [],
+      "label": "/data/bodyct/experiments/nielsrocholl/ULS+/nnUNet_raw/Dataset035_WAW_TACE/labelsTr/WAW_TACE_338_1_scan_lesion0_aug2.nii.gz",
+      "reasons": [
+        "Spacing mismatch between segmentation and corresponding images."
+      ]
+    },
+    {
+      "case_id": "WAW_TACE_35_1_scan_lesion0.nii",
+      "images": [],
+      "label": "/data/bodyct/experiments/nielsrocholl/ULS+/nnUNet_raw/Dataset035_WAW_TACE/labelsTr/WAW_TACE_35_1_scan_lesion0.nii.gz",
+      "reasons": [
+        "Spacing mismatch between segmentation and corresponding images."
+      ]
+    },
+    {
+      "case_id": "WAW_TACE_35_1_scan_lesion0_aug1.nii",
+      "images": [],
+      "label": "/data/bodyct/experiments/nielsrocholl/ULS+/nnUNet_raw/Dataset035_WAW_TACE/labelsTr/WAW_TACE_35_1_scan_lesion0_aug1.nii.gz",
+      "reasons": [
+        "Spacing mismatch between segmentation and corresponding images."
+      ]
+    },
+    {
+      "case_id": "WAW_TACE_35_1_scan_lesion0_aug2.nii",
+      "images": [],
+      "label": "/data/bodyct/experiments/nielsrocholl/ULS+/nnUNet_raw/Dataset035_WAW_TACE/labelsTr/WAW_TACE_35_1_scan_lesion0_aug2.nii.gz",
+      "reasons": [
+        "Spacing mismatch between segmentation and corresponding images."
+      ]
+    },
+    {
+      "case_id": "WAW_TACE_493_3_scan_lesion0.nii",
+      "images": [],
+      "label": "/data/bodyct/experiments/nielsrocholl/ULS+/nnUNet_raw/Dataset035_WAW_TACE/labelsTr/WAW_TACE_493_3_scan_lesion0.nii.gz",
+      "reasons": [
+        "Spacing mismatch between segmentation and corresponding images."
+      ]
+    },
+    {
+      "case_id": "WAW_TACE_493_3_scan_lesion0_aug1.nii",
+      "images": [],
+      "label": "/data/bodyct/experiments/nielsrocholl/ULS+/nnUNet_raw/Dataset035_WAW_TACE/labelsTr/WAW_TACE_493_3_scan_lesion0_aug1.nii.gz",
+      "reasons": [
+        "Spacing mismatch between segmentation and corresponding images."
+      ]
+    },
+    {
+      "case_id": "WAW_TACE_493_3_scan_lesion0_aug2.nii",
+      "images": [],
+      "label": "/data/bodyct/experiments/nielsrocholl/ULS+/nnUNet_raw/Dataset035_WAW_TACE/labelsTr/WAW_TACE_493_3_scan_lesion0_aug2.nii.gz",
+      "reasons": [
+        "Spacing mismatch between segmentation and corresponding images."
+      ]
+    },
+    {
+      "case_id": "WAW_TACE_77_1_scan_lesion0.nii",
+      "images": [],
+      "label": "/data/bodyct/experiments/nielsrocholl/ULS+/nnUNet_raw/Dataset035_WAW_TACE/labelsTr/WAW_TACE_77_1_scan_lesion0.nii.gz",
+      "reasons": [
+        "Spacing mismatch between segmentation and corresponding images."
+      ]
+    },
+    {
+      "case_id": "WAW_TACE_77_1_scan_lesion0_aug1.nii",
+      "images": [],
+      "label": "/data/bodyct/experiments/nielsrocholl/ULS+/nnUNet_raw/Dataset035_WAW_TACE/labelsTr/WAW_TACE_77_1_scan_lesion0_aug1.nii.gz",
+      "reasons": [
+        "Spacing mismatch between segmentation and corresponding images."
+      ]
+    },
+    {
+      "case_id": "WAW_TACE_77_1_scan_lesion0_aug2.nii",
+      "images": [],
+      "label": "/data/bodyct/experiments/nielsrocholl/ULS+/nnUNet_raw/Dataset035_WAW_TACE/labelsTr/WAW_TACE_77_1_scan_lesion0_aug2.nii.gz",
+      "reasons": [
+        "Spacing mismatch between segmentation and corresponding images."
+      ]
+    },
+    {
+      "case_id": "WAW_TACE_79_1_scan_lesion0.nii",
+      "images": [],
+      "label": "/data/bodyct/experiments/nielsrocholl/ULS+/nnUNet_raw/Dataset035_WAW_TACE/labelsTr/WAW_TACE_79_1_scan_lesion0.nii.gz",
+      "reasons": [
+        "Spacing mismatch between segmentation and corresponding images."
+      ]
+    },
+    {
+      "case_id": "WAW_TACE_79_1_scan_lesion0_aug1.nii",
+      "images": [],
+      "label": "/data/bodyct/experiments/nielsrocholl/ULS+/nnUNet_raw/Dataset035_WAW_TACE/labelsTr/WAW_TACE_79_1_scan_lesion0_aug1.nii.gz",
+      "reasons": [
+        "Spacing mismatch between segmentation and corresponding images."
+      ]
+    },
+    {
+      "case_id": "WAW_TACE_79_1_scan_lesion0_aug2.nii",
+      "images": [],
+      "label": "/data/bodyct/experiments/nielsrocholl/ULS+/nnUNet_raw/Dataset035_WAW_TACE/labelsTr/WAW_TACE_79_1_scan_lesion0_aug2.nii.gz",
+      "reasons": [
+        "Spacing mismatch between segmentation and corresponding images."
+      ]
+    },
+    {
+      "case_id": "WAW_TACE_86_2_scan_lesion0.nii",
+      "images": [],
+      "label": "/data/bodyct/experiments/nielsrocholl/ULS+/nnUNet_raw/Dataset035_WAW_TACE/labelsTr/WAW_TACE_86_2_scan_lesion0.nii.gz",
+      "reasons": [
+        "Spacing mismatch between segmentation and corresponding images."
+      ]
+    },
+    {
+      "case_id": "WAW_TACE_86_2_scan_lesion0_aug1.nii",
+      "images": [],
+      "label": "/data/bodyct/experiments/nielsrocholl/ULS+/nnUNet_raw/Dataset035_WAW_TACE/labelsTr/WAW_TACE_86_2_scan_lesion0_aug1.nii.gz",
+      "reasons": [
+        "Spacing mismatch between segmentation and corresponding images."
+      ]
+    },
+    {
+      "case_id": "WAW_TACE_86_2_scan_lesion0_aug2.nii",
+      "images": [],
+      "label": "/data/bodyct/experiments/nielsrocholl/ULS+/nnUNet_raw/Dataset035_WAW_TACE/labelsTr/WAW_TACE_86_2_scan_lesion0_aug2.nii.gz",
+      "reasons": [
+        "Spacing mismatch between segmentation and corresponding images."
+      ]
+    }
+  ]
+}
