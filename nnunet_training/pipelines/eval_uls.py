@@ -5,7 +5,9 @@ from pathlib import Path
 
 import nibabel as nib
 import numpy as np
+from concurrent.futures import ProcessPoolExecutor
 from scipy.ndimage import binary_erosion, binary_dilation
+from tqdm import tqdm
 
 
 STRUCT = np.ones((3, 3, 3), dtype=bool)
@@ -78,20 +80,52 @@ def write_rows(rows: list[dict], out_csv: Path) -> None:
             w.writerow({k: r.get(k, "") for k in cols})
 
 
-def evaluate(dataset_root: Path, preds_dir: Path, out_csv: Path) -> None:
+def _eval_one(pred_path: Path, label_path: Path) -> tuple[str, float, float] | None:
+    if not label_path.exists():
+        return None
+    p = load_seg_bool(pred_path)
+    g = load_seg_bool(label_path)
+    return lesion_type(pred_path.name), dice(g, p), biou(g, p)
+
+
+def _triad_one(key_name: str, normal_p: Path, aug1_p: Path, aug2_p: Path) -> tuple[str, float, float]:
+    pn = load_seg_bool(normal_p)
+    p1 = load_seg_bool(aug1_p)
+    p2 = load_seg_bool(aug2_p)
+    d = (dice(pn, p1) + dice(pn, p2) + dice(p1, p2)) / 3.0
+    b = (biou(pn, p1) + biou(pn, p2) + biou(p1, p2)) / 3.0
+    return lesion_type(key_name), float(d), float(b)
+
+
+def _eval_one_tuple(args: tuple[Path, Path]) -> tuple[str, float, float] | None:
+    return _eval_one(*args)
+
+
+def _triad_one_tuple(args: tuple[str, Path, Path, Path]) -> tuple[str, float, float]:
+    return _triad_one(*args)
+
+
+def evaluate(dataset_root: Path, preds_dir: Path, out_csv: Path, workers: int = 1) -> None:
     labels_dir = dataset_root / "labelsTr"
     pred_files = sorted(preds_dir.glob("*.nii.gz"))
     eval_rec: list[tuple[str, float, float]] = []
     groups: dict[str, dict[str, Path]] = {}
 
+    # Build jobs and role groups without I/O first
+    eval_jobs: list[tuple[Path, Path]] = []
     for pf in pred_files:
         lf = labels_dir / pf.name
-        if not lf.exists():
-            continue
-        p = load_seg_bool(pf); g = load_seg_bool(lf)
-        eval_rec.append((lesion_type(pf.name), dice(g, p), biou(g, p)))
+        eval_jobs.append((pf, lf))
         k = triad_key(pf.name); r = role(pf.name)
         groups.setdefault(k, {})[r] = pf
+
+    # Evaluate per-file metrics in parallel
+    if eval_jobs:
+        with ProcessPoolExecutor(max_workers=workers) as ex:
+            for res in tqdm(ex.map(_eval_one_tuple, eval_jobs),
+                            total=len(eval_jobs), desc="Evaluating predictions", unit="file"):
+                if res is not None:
+                    eval_rec.append(res)
 
     rows: list[dict] = []
     if eval_rec:
@@ -109,13 +143,16 @@ def evaluate(dataset_root: Path, preds_dir: Path, out_csv: Path) -> None:
                         "dsc_mean":md,"dsc_std":sd,"biou_mean":mb,"biou_std":sb})
 
     triad: list[tuple[str, float, float]] = []
+    triad_jobs: list[tuple[str, Path, Path, Path]] = []
     for k, rs in groups.items():
-        if not {"normal","aug1","aug2"}.issubset(rs):
-            continue
-        pn = load_seg_bool(rs["normal"]); p1 = load_seg_bool(rs["aug1"]); p2 = load_seg_bool(rs["aug2"])
-        d = (dice(pn, p1) + dice(pn, p2) + dice(p1, p2)) / 3.0
-        b = (biou(pn, p1) + biou(pn, p2) + biou(p1, p2)) / 3.0
-        triad.append((lesion_type(k), float(d), float(b)))
+        if {"normal","aug1","aug2"}.issubset(rs):
+            triad_jobs.append((k, rs["normal"], rs["aug1"], rs["aug2"]))
+
+    if triad_jobs:
+        with ProcessPoolExecutor(max_workers=workers) as ex:
+            for t_res in tqdm(ex.map(_triad_one_tuple, triad_jobs),
+                               total=len(triad_jobs), desc="Computing agreement", unit="triplet"):
+                triad.append(t_res)
 
     if triad:
         by_t2: dict[str, list[tuple[float, float]]] = {}
@@ -141,8 +178,9 @@ def main() -> None:
     p.add_argument("--dataset-root", type=Path, default=Path("/data/bodyct/experiments/nielsrocholl/ULS+/nnUNet_raw/Dataset401_Longitudinal_CT_Test_128"))
     p.add_argument("--preds", type=Path, default=Path("/data/bodyct/experiments/nielsrocholl/ULS+/nnUNet_raw/Dataset401_Longitudinal_CT_Test_128/preds"))
     p.add_argument("--out", type=Path, default=Path("/data/bodyct/experiments/nielsrocholl/ULS+/nnUNet_raw/Dataset401_Longitudinal_CT_Test_128/uls_metrics.csv"))
+    p.add_argument("--workers", type=int, default=1)
     args = p.parse_args()
-    evaluate(args.dataset_root, args.preds, args.out)
+    evaluate(args.dataset_root, args.preds, args.out, workers=args.workers)
 
 
 if __name__ == "__main__":
