@@ -29,30 +29,18 @@ The evaluation script prints tqdm progress bars and supports parallel processing
 Basic usage:
 ```bash
 python3 nnunet_training/pipelines/eval_uls.py \
-  --dataset-root /data/bodyct/experiments/nielsrocholl/ULS+/nnUNet_raw/Dataset401_Longitudinal_CT_Test_128 \
-  --preds        /data/bodyct/experiments/nielsrocholl/ULS+/nnUNet_raw/Dataset401_Longitudinal_CT_Test_128/preds \
-  --out          /data/bodyct/experiments/nielsrocholl/ULS+/nnUNet_raw/Dataset401_Longitudinal_CT_Test_128/uls_metrics.csv \
-  --workers      8
-```
-
-Dataset402 example (predictions in shared storage):
-```bash
-python3 nnunet_training/pipelines/eval_uls.py \
-  --dataset-root /data/bodyct/experiments/nielsrocholl/ULS+/nnUNet_raw/Dataset402_Longitudinal_CT_Test_256 \
-  --preds        /rianne_data/predictions/ULS+/402 \
-  --out          /rianne_data/predictions/ULS+/402/uls_metrics.csv \
-  --workers      $(nproc)
-```
-
-Monitor a long run:
-```bash
-python3 nnunet_training/pipelines/eval_uls.py \
-  --dataset-root /data/bodyct/experiments/nielsrocholl/ULS+/nnUNet_raw/Dataset402_Longitudinal_CT_Test_256 \
-  --preds        /rianne_data/predictions/ULS+/402 \
-  --out          /rianne_data/predictions/ULS+/402/uls_metrics.csv \
-  --workers      $(nproc) | tee /rianne_data/predictions/ULS+/402/eval.log
-
-tail -f /rianne_data/predictions/ULS+/402/eval.log
+  --dataset-root /data/bodyct/.../nnUNet_raw/DatasetXXX_Test \
+  --preds        /path/to/predictions_dir \
+  --out          /path/to/output/uls_metrics.csv \
+  --workers      12
 ```
 
 The CSV contains per-type and overall Dice/Boundary IoU and agreement (mean pairwise Dice/Boundary IoU among normal/aug1/aug2).
+
+### 4) Plot metrics (save PNGs)
+Generate simple bar plots (Dice and Boundary IoU) from the CSV. Images are saved (no interactive display).
+```bash
+python3 nnunet_training/pipelines/plot_uls_metrics.py \
+  --csv    /path/to/output/uls_metrics.csv \
+  --outdir /path/to/output/plots   # optional; defaults to CSV folder
+```
